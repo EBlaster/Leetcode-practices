@@ -11,54 +11,34 @@ struct TreeNode {
 };
 
 class Solution {
+  struct State {
+    // count of nodes in the subtree
+    int nodeCount;
+
+    // sum of values in the subtree
+    int valueSum;
+
+    // max average found in the subtree
+    double maxAverage;
+  };
+
  public:
-  pair<int, int> travelTree(TreeNode *root) {
-    pair<int, int> tmpLeft;
-    pair<int, int> tmpRight;
-    double tmpAvg;
-    double tmpDownAvg;
-    double tmpLeftAvg;
-    double tmpRightAvg;
-    if (root->left == nullptr && root->right == nullptr) {
-      return make_pair(root->val, 1);
+  State travelTree(TreeNode *root) {
+    if (!root) {
+      return {0, 0, 0};
     } else {
-      if (root->left != nullptr && root->right != nullptr) {
-        tmpLeft = travelTree(root->left);
-        tmpRight = travelTree(root->right);
-        tmpLeftAvg = tmpLeft.first / (double)tmpLeft.second;
-        tmpRightAvg = tmpRight.first / (double)tmpRight.second;
-        tmpDownAvg = max(tmpLeftAvg, tmpRightAvg);
-        tmpAvg = (tmpLeft.first + tmpRight.first + root->val)
-                 / ((double)tmpLeft.second + tmpRight.second + 1);
-        if (tmpAvg > tmpDownAvg) {
-          return make_pair(tmpLeft.first + tmpRight.first + root->val,
-                           tmpLeft.second + tmpRight.second + 1);
-        } else {
-          return tmpLeftAvg > tmpRightAvg ? tmpLeft : tmpRight;
-        }
-      } else if (root->left != nullptr) {
-        tmpLeft = travelTree(root->left);
-        tmpDownAvg = tmpLeft.first / (double)tmpLeft.second;
-        tmpAvg = (tmpLeft.first + root->val) / ((double)tmpLeft.second + 1);
-        if (tmpAvg > tmpDownAvg) {
-          return make_pair(tmpLeft.first + root->val, tmpLeft.second + 1);
-        } else {
-          return tmpLeft;
-        }
-      } else {
-        tmpRight = travelTree(root->right);
-        tmpDownAvg = tmpRight.first / (double)tmpRight.second;
-        tmpAvg = (tmpRight.first + root->val) / ((double)tmpRight.second + 1);
-        if (tmpAvg > tmpDownAvg) {
-          return make_pair(tmpRight.first + root->val, tmpRight.second + 1);
-        } else {
-          return tmpRight;
-        }
-      }
+      State left = travelTree(root->left);
+      State right = travelTree(root->right);
+
+      int nodeCount = left.nodeCount + right.nodeCount + 1;
+      int sum = left.valueSum + right.valueSum + root->val;
+      double maxAverage = max((1.0 * (sum)) / nodeCount,
+                              max(right.maxAverage, left.maxAverage));
+      return {nodeCount, sum, maxAverage};
     }
   }
 
   double maximumAverageSubtree(TreeNode *root) {
-    return travelTree(root).first / (double)travelTree(root).second;
+    return travelTree(root).maxAverage;
   }
 };
